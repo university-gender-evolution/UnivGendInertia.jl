@@ -1,0 +1,13 @@
+name = "UnivGendInertia"
+uuid = "3f3a2004-2d20-4da0-aefb-41113c263bce"
+authors = ["Krishna Bhogaonker"]
+version = "1.0.0-DEV"
+
+[compat]
+julia = "1.11"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
