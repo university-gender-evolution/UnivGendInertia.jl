@@ -134,7 +134,7 @@ end;
     
 
 
-function aggregate_cluster_vectors_to_matrix(univdata::JuliaGendUniv_Types.GendUnivData)
+function aggregate_cluster_vectors_to_matrix(univdata::GendUnivData)
     d_agg_norm = [univdata.dept_data_vector[i].cluster_data.cluster_vector_agg_norm for i in 1:length(univdata.dept_data_vector)]
     d_agg_ynorm = [univdata.dept_data_vector[i].cluster_data.cluster_vector_agg_ynorm for i in 1:length(univdata.dept_data_vector)]
     d_detail_norm = [univdata.dept_data_vector[i].cluster_data.cluster_vector_detail_norm for i in 1:length(univdata.dept_data_vector)]
@@ -273,7 +273,7 @@ end
 
 
 
-function _process_clustering_analysis!(univdata::JuliaGendUniv_Types.GendUnivData)
+function _process_clustering_analysis!(univdata::GendUnivData)
 
     clgroups = [getfield(univdata.clustering, i) for i in fieldnames(typeof(univdata.clustering))]
     

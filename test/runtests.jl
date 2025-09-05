@@ -13,9 +13,9 @@ using TestItems
 end
 
 
-@testitem "[JuliaGendUniv] preprocess UM data No Audit" begin
+@testitem "[UnivGendInertia] preprocess UM data No Audit" begin
     
-using JuliaGendUniv_Types, Test
+using Test
     
 cd(@__DIR__)
 @show pwd()

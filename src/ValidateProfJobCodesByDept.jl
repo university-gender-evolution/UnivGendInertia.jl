@@ -1,5 +1,5 @@
 
-function _validation_adjust_depts(univ_data::JuliaGendUniv_Types.GendUnivData)
+function _validation_adjust_depts(univ_data::GendUnivData)
 
     #=
         This is the overall function to resolve data issues in department names and 
@@ -11,7 +11,7 @@ function _validation_adjust_depts(univ_data::JuliaGendUniv_Types.GendUnivData)
 end
 
 
-function _validation_adjust_dept_names(univ_data::JuliaGendUniv_Types.GendUnivData)
+function _validation_adjust_dept_names(univ_data::GendUnivData)
 
     #= 
         In many cases, department names were changed over time. This function will 

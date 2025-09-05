@@ -1,10 +1,10 @@
-function _load_univ_data(file_path::String, config::JuliaGendUniv_Types.AbstractGendUnivDataConfiguration)
+function _load_univ_data(file_path::String, config::AbstractGendUnivDataConfiguration)
     dstructure = _setup_data(file_path, config)
     return dstructure
 end;
 
 
-function _setup_data(file_path::String, config::JuliaGendUniv_Types.AbstractGendUnivDataConfiguration)
+function _setup_data(file_path::String, config::AbstractGendUnivDataConfiguration)
 
     df = DataFrame(StatFiles.load(file_path))
     disallowmissing!(df, error=false)
@@ -14,7 +14,7 @@ function _setup_data(file_path::String, config::JuliaGendUniv_Types.AbstractGend
 end;
 
 
-function _set_department_summaries!(univ_data::JuliaGendUniv_Types.GendUnivData, ::UM)
+function _set_department_summaries!(univ_data::GendUnivData, ::UM)
 
     _validation_adjust_depts(univ_data)
     depts_prof = subset(univ_data._raw_df, :jobdes => ByRow(contains("PROF")))
@@ -36,7 +36,7 @@ end;
 
 
 
-function _get_departments!(univdata::JuliaGendUniv_Types.GendUnivData, ::UM)
+function _get_departments!(univdata::GendUnivData, ::UM)
 
     # First filter by departments that start in the target year and have 
     # sufficient subsequent years
@@ -49,7 +49,7 @@ function _get_departments!(univdata::JuliaGendUniv_Types.GendUnivData, ::UM)
 end;
 
 
-function _get_departments!(univdata::JuliaGendUniv_Types.GendUnivData, dept_index::Integer, ::UM)
+function _get_departments!(univdata::GendUnivData, dept_index::Integer, ::UM)
     dept_name =  univdata._valid_dept_summary[(univdata._valid_dept_summary.groupindices .== dept_index), :].orgname
     univdata.processed_df = subset(univdata._raw_df, :orgname => ByRow(==(dept_name[1])))
     #@debug("get processed_df size: $(size(univdata.processed_df))")
@@ -57,7 +57,7 @@ function _get_departments!(univdata::JuliaGendUniv_Types.GendUnivData, dept_inde
 end;
 
 function get_department_data(file_path::String, dept_name::String,
-                            config::JuliaGendUniv_Types.AbstractGendUnivDataConfiguration)
+                            config::AbstractGendUnivDataConfiguration)
 
     univ_data = _load_univ_data(file_path, config)
 
@@ -73,7 +73,7 @@ end;
 
 
 
-function _process_each_dept!(univdata::JuliaGendUniv_Types.GendUnivData, ::UM, audit_config)   
+function _process_each_dept!(univdata::GendUnivData, ::UM, audit_config)   
     new_dept_names = []
     #@debug("process_each_dept - Dept Names: $(univdata.department_names)")
     for (index, value) in enumerate(univdata.department_names)
@@ -96,7 +96,7 @@ function _process_each_dept!(univdata::JuliaGendUniv_Types.GendUnivData, ::UM, a
     univdata.department_names = new_dept_names
 end;
 
-function _postprocess_data_arrays!(univdata::JuliaGendUniv_Types.GendUnivData, ::UM)
+function _postprocess_data_arrays!(univdata::GendUnivData, ::UM)
 
     t1 = [univdata.dept_data_vector[i].processed_data for i in 1:length(univdata.dept_data_vector)]
     t2 = [univdata.dept_data_vector[i].cluster_vector[1:univdata.num_years*6] for i in 1:length(univdata.dept_data_vector)]
@@ -110,7 +110,7 @@ function _postprocess_data_arrays!(univdata::JuliaGendUniv_Types.GendUnivData, :
     _process_clustering_analysis!(univdata)    
 end;
 
-function _postprocess_data_arrays_all_depts!(univdata::JuliaGendUniv_Types.GendUnivData, ::UM)
+function _postprocess_data_arrays_all_depts!(univdata::GendUnivData, ::UM)
     @debug("size of dept data vector: $(size(univdata.dept_data_vector))")
     t1 = univdata.dept_data_vector[end].processed_data
     #t2 = [univdata.dept_data_vector[end].cluster_vector[1:univdata.num_years*6] for i in 1:length(univdata.dept_data_vector)]
@@ -131,8 +131,8 @@ end;
 function preprocess_data(file_path::String, 
                         first_year::Integer, 
                         num_years::Integer, 
-                        config::JuliaGendUniv_Types.AbstractGendUnivDataConfiguration; 
-                        audit_config::JuliaGendUniv_Types.AbstractDataChecks=NoAudit())
+                        config::AbstractGendUnivDataConfiguration; 
+                        audit_config::AbstractDataChecks=NoAudit())
 
     logger = TeeLogger(
             ConsoleLogger(stderr),
@@ -160,8 +160,8 @@ end;
 
 function preprocess_data(file_path::String, 
                         dept_name::String, 
-                        config::JuliaGendUniv_Types.AbstractGendUnivDataConfiguration; 
-                        audit_config::JuliaGendUniv_Types.AbstractDataChecks=NoAudit())
+                        config::AbstractGendUnivDataConfiguration; 
+                        audit_config::AbstractDataChecks=NoAudit())
 
     univ_data = _load_univ_data(file_path, config)
 
@@ -183,8 +183,8 @@ end;
 
 function preprocess_data(file_path::String, 
                         dept_index::Integer, 
-                        config::JuliaGendUniv_Types.AbstractGendUnivDataConfiguration; 
-                        audit_config::JuliaGendUniv_Types.AbstractDataChecks=NoAudit())
+                        config::AbstractGendUnivDataConfiguration; 
+                        audit_config::AbstractDataChecks=NoAudit())
 
     univ_data = _load_univ_data(file_path, config)
 
@@ -208,8 +208,8 @@ function preprocess_data(file_path::String,
                         dept_name::String,
                         start_year::Integer,
                         num_years::Integer, 
-                        config::JuliaGendUniv_Types.AbstractGendUnivDataConfiguration; 
-                        audit_config::JuliaGendUniv_Types.AbstractDataChecks=NoAudit())
+                        config::AbstractGendUnivDataConfiguration; 
+                        audit_config::AbstractDataChecks=NoAudit())
 
 
     univ_data = _load_univ_data(file_path, config)
@@ -243,8 +243,8 @@ function preprocess_data(file_path::String,
                         dept_index::Integer,
                         start_year::Integer,
                         num_years::Integer, 
-                        config::JuliaGendUniv_Types.AbstractGendUnivDataConfiguration; 
-                        audit_config::JuliaGendUniv_Types.AbstractDataChecks=NoAudit())
+                        config::AbstractGendUnivDataConfiguration; 
+                        audit_config::AbstractDataChecks=NoAudit())
 
     univ_data = _load_univ_data(file_path, config)
 
@@ -272,9 +272,9 @@ function preprocess_data(file_path::String,
 end;
 
 
-function preprocess_data(univ_data::JuliaGendUniv_Types.GendUnivData, 
-                        config::JuliaGendUniv_Types.AbstractGendUnivDataConfiguration; 
-                        audit_config::JuliaGendUniv_Types.AbstractDataChecks=NoAudit())
+function preprocess_data(univ_data::GendUnivData, 
+                        config::AbstractGendUnivDataConfiguration; 
+                        audit_config::AbstractDataChecks=NoAudit())
 
 
 
@@ -328,8 +328,8 @@ end
 
 
 function preprocess_data(file_path::String, 
-                        config::JuliaGendUniv_Types.AbstractGendUnivDataConfiguration; 
-                        audit_config::JuliaGendUniv_Types.AbstractDataChecks=NoAudit())
+                        config::AbstractGendUnivDataConfiguration; 
+                        audit_config::AbstractDataChecks=NoAudit())
 
 
     univ_data = _load_univ_data(file_path, config)
@@ -377,8 +377,8 @@ function preprocess_dept_train_test_split(file_path::String,
                                             start_year::Integer,
                                             train_nyears::Integer,
                                             test_nyears::Integer, 
-                                            config::JuliaGendUniv_Types.AbstractGendUnivDataConfiguration; 
-                                            audit_config::JuliaGendUniv_Types.AbstractDataChecks=NoAudit())
+                                            config::AbstractGendUnivDataConfiguration; 
+                                            audit_config::AbstractDataChecks=NoAudit())
 
 
     univ_data = _load_univ_data(file_path, config)
