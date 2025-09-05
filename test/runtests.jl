@@ -1,6 +1,20 @@
 using UnivGendInertia
 using Test
+using TestItems
 
-@testset "UnivGendInertia.jl" begin
-    # Write your tests here.
+
+@testitem "[UnivGendInertia] environment setup" begin
+    cd(@__DIR__)
+    @show pwd()
+    #@test isfile("michigan1979to2009_wGender.dta")
+    @test UM() isa AbstractGendUnivDataConfiguration 
+    @test DataAudit() isa AbstractDataChecks
+    @test NoAudit() isa AbstractDataChecks
 end
+
+
+
+
+
+
+
