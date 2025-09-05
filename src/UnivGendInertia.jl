@@ -23,13 +23,13 @@ using Logging, LoggingExtras
 
 
 include("Types.jl")
-#include("UMPrepareData.jl");
-#include("ClusterProcessing.jl");
-#include("UMDepartmentProcessing.jl");
-#include("ValidateProfJobCodesByDept.jl")
+include("API.jl")
+include("ClusterProcessing.jl");
+include("DepartmentProcessing.jl");
+include("ValidateProfJobCodesByDept.jl")
 
 
-# export preprocess_data, preprocess_dept_train_test_split, get_department_data
+ export preprocess_data, preprocess_dept_train_test_split, get_department_data
 
 
 

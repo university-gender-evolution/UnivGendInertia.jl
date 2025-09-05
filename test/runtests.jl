@@ -13,7 +13,15 @@ using TestItems
 end
 
 
+@testitem "[JuliaGendUniv] preprocess UM data No Audit" begin
+    
+using JuliaGendUniv_Types, Test
+    
+cd(@__DIR__)
+@show pwd()
 
+
+end
 
 
 
