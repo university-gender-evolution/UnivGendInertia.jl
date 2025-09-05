@@ -1,5 +1,12 @@
-*.jl.*.cov
 *.jl.cov
+*.jl.*.cov
 *.jl.mem
-/docs/Manifest*.toml
-/docs/build/
+*.jl.*.mem
+Manifest.toml
+.DS_Store
+docs/build/
+docs/site/
+.vscode/
+test/michigan1979to2009_wGender.dta
+test/*.pdf
+scratch/
