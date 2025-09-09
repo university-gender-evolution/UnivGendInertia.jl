@@ -10,3 +10,5 @@ docs/site/
 test/michigan1979to2009_wGender.dta
 test/*.pdf
 scratch/
+logfile.txt
+test/logfile.txt

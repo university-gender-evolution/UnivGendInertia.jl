@@ -3,6 +3,11 @@ function _load_univ_data(file_path::String, config::AbstractGendUnivDataConfigur
     return dstructure
 end;
 
+# for new data
+function _load_univ_data(file_df::DataFrame, config::AbstractGendUnivDataConfiguration)
+    dstructure = _setup_data(file_df, config)
+    return dstructure
+end;
 
 function _setup_data(file_path::String, config::AbstractGendUnivDataConfiguration)
 
@@ -13,6 +18,15 @@ function _setup_data(file_path::String, config::AbstractGendUnivDataConfiguratio
     return d
 end;
 
+# For new data 
+function _setup_data(file_df::DataFrame, config::AbstractGendUnivDataConfiguration)
+
+    df = file_df
+    disallowmissing!(df, error=false)
+    d = UMData("new_data", df)
+    _set_department_summaries!(d, config)
+    return d
+end;
 
 function _set_department_summaries!(univ_data::GendUnivData, ::UM)
 
@@ -75,11 +89,11 @@ end;
 
 function _process_each_dept!(univdata::GendUnivData, ::UM, audit_config)   
     new_dept_names = []
-    #@debug("process_each_dept - Dept Names: $(univdata.department_names)")
+    @debug("process_each_dept - Dept Names: $(univdata.department_names)")
     for (index, value) in enumerate(univdata.department_names)
         input = filter(:orgname => contains(value), univdata.processed_df)
-        #@debug("process_each_dept - input size: $(size(input))")
-        #@debug("process_each_dept - dept name: $(input.orgname[1])")
+        @debug("process_each_dept - input size: $(size(input))")
+        @debug("process_each_dept - dept name: $(input.orgname[1])")
         res = preprocess_um_data(input, univdata.first_year, univdata.num_years, audit_config)
         if describe(res.processed_data[:, [:act_deptn]], :mean)[1,2] == 0.0
             @info("dept data empty:  $value")
@@ -87,7 +101,7 @@ function _process_each_dept!(univdata::GendUnivData, ::UM, audit_config)
         else            
             push!(univdata.dept_data_vector, res)
             @info("department added: $value")
-            #@debug("process_each_dept - size of dept_data_vector: $(length(univdata.dept_data_vector))")
+            @debug("process_each_dept - size of dept_data_vector: $(length(univdata.dept_data_vector))")
             @debug("process_each_dept - size of results df: $(size(res.processed_data))")
             push!(new_dept_names, value)
             @debug("rows processed: $(nrow(res.processed_data))")
@@ -107,7 +121,10 @@ function _postprocess_data_arrays!(univdata::GendUnivData, ::UM)
     univdata.univ_sindy_matrix = reduce(hcat, t3)
     univdata.univ_bootstrap_df = reduce(vcat, t4)
     aggregate_cluster_vectors_to_matrix(univdata)
-    _process_clustering_analysis!(univdata)    
+    # TODO I need to set this so that if there are less than 10 departments it will not run clustering.
+    if length(univdata.department_names) >= 10
+        _process_clustering_analysis!(univdata)
+    end    
 end;
 
 function _postprocess_data_arrays_all_depts!(univdata::GendUnivData, ::UM)
@@ -180,6 +197,32 @@ function preprocess_data(file_path::String,
     return univ_data
 end;
 
+#=
+This is for dataframes for the new data. 
+=#
+function preprocess_data(file_df::DataFrame, 
+                        dept_name::String, 
+                        config::AbstractGendUnivDataConfiguration; 
+                        audit_config::AbstractDataChecks=NoAudit())
+
+    
+    univ_data = _load_univ_data(file_df, config)
+
+    if any(occursin.(strip(dept_name), univ_data._valid_dept_summary.orgname))
+        dept_index = univ_data._valid_dept_summary[(univ_data._valid_dept_summary.orgname .== dept_name), :].groupindices[1]
+    else
+        throw(DomainError(dept_name, "The provided department name does not match any existing record. 
+        Please make sure the name is specified exactly."))
+    end
+    
+    univ_data.first_year = univ_data._valid_dept_summary[(univ_data._valid_dept_summary.groupindices .== dept_index), :].first_year[1]
+    univ_data.num_years = univ_data._valid_dept_summary[(univ_data._valid_dept_summary.groupindices .== dept_index), :].nyears[1]
+    _get_departments!(univ_data, dept_index, config)
+    _process_each_dept!(univ_data, config, audit_config)
+    _postprocess_data_arrays!(univ_data, config)
+    return univ_data
+end;
+
 
 function preprocess_data(file_path::String, 
                         dept_index::Integer, 
@@ -212,6 +255,16 @@ function preprocess_data(file_path::String,
                         audit_config::AbstractDataChecks=NoAudit())
 
 
+    logger = TeeLogger(
+            ConsoleLogger(stderr),
+            FormatLogger(open("logfile.txt", "w")) do io, args
+            # Write the module, level and message only
+                println(io, args._module, " | ", "[", args.level, "] ", args.message)
+            end )
+    
+    global_logger(logger)
+
+    @debug "logging initiated."
     univ_data = _load_univ_data(file_path, config)
 
     if any(occursin.(strip(dept_name), univ_data._valid_dept_summary.orgname))
@@ -238,6 +291,51 @@ function preprocess_data(file_path::String,
     return univ_data
 end;
 
+
+# For new data
+function preprocess_data(file_df::DataFrame, 
+                        dept_name::String,
+                        start_year::Integer,
+                        num_years::Integer, 
+                        config::AbstractGendUnivDataConfiguration; 
+                        audit_config::AbstractDataChecks=NoAudit())
+
+
+    logger = TeeLogger(
+            ConsoleLogger(stderr),
+            FormatLogger(open("logfile.txt", "w")) do io, args
+            # Write the module, level and message only
+                println(io, args._module, " | ", "[", args.level, "] ", args.message)
+            end )
+    
+    global_logger(logger)
+
+    @debug "logging initiated."
+    univ_data = _load_univ_data(file_df, config)
+
+    if any(occursin.(strip(dept_name), univ_data._valid_dept_summary.orgname))
+        dept_data = univ_data._valid_dept_summary[(univ_data._valid_dept_summary.orgname .== dept_name), :]
+        dept_index = dept_data.groupindices[1] 
+    else
+        throw(DomainError(dept_name, "The provided department name does not match any existing record. 
+        Please make sure the name is specified exactly."))
+    end
+
+    if (start_year + num_years) < dept_data.last_year[1] && start_year >= dept_data.first_year[1]
+
+    else
+        throw(DomainError(dept_name, "The provided start_year and number of years falls outside of the 
+        range of the data. Either the start year falls before the first year of data, or the 
+        start year + number of years falls beyond the last year of data."))
+    end
+
+    univ_data.first_year = start_year
+    univ_data.num_years = num_years
+    _get_departments!(univ_data, dept_index, config)
+    _process_each_dept!(univ_data, config, audit_config)
+    _postprocess_data_arrays!(univ_data, config)
+    return univ_data
+end;
 
 function preprocess_data(file_path::String, 
                         dept_index::Integer,

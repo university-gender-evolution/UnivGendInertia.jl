@@ -20,6 +20,7 @@ using Dates
 using ComponentArrays
 using Combinatorics
 using Logging, LoggingExtras
+using Mustache
 
 
 include("Types.jl")
@@ -29,7 +30,8 @@ include("DepartmentProcessing.jl");
 include("ValidateProfJobCodesByDept.jl")
 
 
- export preprocess_data, preprocess_dept_train_test_split, get_department_data
+ export preprocess_data, preprocess_dept_train_test_split, get_department_data, 
+        UM, DataAudit, NoAudit, UMData, UMDeptData
 
 
 

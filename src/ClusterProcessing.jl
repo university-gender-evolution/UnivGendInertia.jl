@@ -160,7 +160,7 @@ end;
 
 
 function fit_pca!(clgroup)
-
+        #@debug("cluster group matrix: $(clgroup.raw_matrix)")
         datamatrix = clgroup.raw_matrix
         M = MultivariateStats.fit(PCA, datamatrix; maxoutdim=3)
         clgroup.pca_matrix = MultivariateStats.predict(M, datamatrix)
